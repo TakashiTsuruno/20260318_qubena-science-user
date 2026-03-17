@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qubena 理科 利用者数エクスプローラー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e2e0d8;
+  --border-strong: #c8c6bc;
+  --text: #1a1916;
+  --text-2: #5a584f;
+  --text-3: #9a9890;
+  --accent: #1a4a3a;
+  --accent-light: #e8f0ec;
+  --accent-mid: #4a8a6a;
+  --warn: #7a4a1a;
+  --warn-bg: #fdf3e8;
+  --info: #1a3a5a;
+  --info-bg: #e8f0f8;
+  --ok: #1a4a2a;
+  --ok-bg: #e8f4ec;
+  --elem: #3a5a8a;
+  --elem-bg: #eaf0f8;
+  --mid: #5a3a7a;
+  --mid-bg: #f0eaf8;
+  --old: #7a5a3a;
+  --old-bg: #f8f0e8;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Noto Sans JP', sans-serif;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── ヘッダー ── */
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 20px 28px 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.header-meta {
+  font-size: 11px;
+  opacity: .65;
+  font-family: var(--mono);
+}
+
+/* ── レイアウト ── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── カード ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.card-header {
+  padding: 10px 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.card-header-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-header-toggle {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--mono);
+}
+.card-body {
+  padding: 14px 16px;
+}
+.card-body.collapsed { display: none; }
+
+/* ── 前提タグ ── */
+.premise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.premise-section { display: flex; flex-direction: column; gap: 5px; }
+.premise-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+.premise-item {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.65;
+  padding: 5px 8px 5px 10px;
+  border-left: 2.5px solid var(--border-strong);
+  background: var(--surface2);
+  border-radius: 0 4px 4px 0;
+}
+.tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+  letter-spacing: .04em;
+  font-family: var(--mono);
+}
+.tag-warn { background: var(--warn-bg); color: var(--warn); }
+.tag-info { background: var(--info-bg); color: var(--info); }
+.tag-ok   { background: var(--ok-bg);   color: var(--ok); }
+
+/* ── コントロール ── */
+.ctrl-card { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ctrl-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  white-space: nowrap;
+  min-width: 60px;
+}
+.btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn {
+  font-size: 11px;
+  font-family: var(--sans);
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.btn:hover { border-color: var(--accent-mid); color: var(--accent); }
+.btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn.mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.sm { font-size: 10px; padding: 3px 8px; }
+.divider-v { width: 1px; height: 20px; background: var(--border-strong); margin: 0 4px; }
+
+/* ── 上段テーブル ── */
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  padding: 10px 16px 6px;
+  border-top: 1px solid var(--border);
+}
+.section-title:first-child { border-top: none; }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 6px 10px;
+  border-bottom: 1.5px solid var(--border-strong);
+  text-align: right;
+  white-space: nowrap;
+  background: var(--surface2);
+}
+th:first-child { text-align: left; }
+td {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+td:first-child { text-align: left; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+.row-derived { background: var(--surface2); }
+.row-total td {
+  border-top: 1.5px solid var(--border-strong);
+  font-weight: 700;
+  font-size: 12px;
+  background: var(--surface2);
+}
+.row-section td {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-3);
+  padding: 8px 10px 3px;
+  border-bottom: none;
+  background: var(--bg);
+}
+.na { color: var(--text-3); font-style: italic; font-size: 11px; }
+.num { font-family: var(--mono); font-size: 12px; }
+
+/* ── 下段エリア ── */
+.de-header {
+  padding: 8px 16px 0;
+  border-top: 1px solid var(--border);
+}
+.de-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto;
+}
+.tab {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  color: var(--text-3);
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all .12s;
+}
+.tab:hover { color: var(--text-2); }
+.tab.elem { color: var(--elem); }
+.tab.mid  { color: var(--mid); }
+.tab.active.elem { border-bottom-color: var(--elem); color: var(--elem); background: var(--elem-bg); }
+.tab.active.mid  { border-bottom-color: var(--mid);  color: var(--mid);  background: var(--mid-bg); }
+
+.de-note {
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  line-height: 1.6;
+  background: var(--surface2);
+}
+
+/* ── グループ別バッジ ── */
+.grp-elem { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--elem); margin-right: 5px; vertical-align: middle; }
+.grp-mid  { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--mid);  margin-right: 5px; vertical-align: middle; }
+.grp-old  { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--old);  margin-right: 5px; vertical-align: middle; }
+
+/* ── フッター ── */
+.footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  padding: 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">Qubena 理科 利用者数エクスプローラー</span>
+  <span class="header-meta">対象期間：2025-04-01 〜 2026-02-28　／　小3〜中3 全学年　／　全mode</span>
+</div>
+
+<div class="main">
+
+<!-- 前提パネル -->
+<div class="card">
+  <div class="card-header" onclick="toggleCard('premise')">
+    <span class="card-header-title">📋 この表を読む前に知っておくべき前提</span>
+    <span class="card-header-toggle" id="premise-toggle">▼ 開く</span>
+  </div>
+  <div class="card-body collapsed" id="premise-body">
+    <div class="premise-grid">
+
+      <div class="premise-section">
+        <div class="premise-section-title">B / B' / B" の性質</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>全グループ合算のため、特定グループの分母には使えない</div>
+        <div class="premise-item"><span class="tag tag-info">定義</span>B = 在籍登録生徒数（週次平均）<br>B' = 理科を1問も解いたことがない在籍生徒（週次平均）<br>B" = B − B'（開始済み）</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>B' は「累計未開始」ではなく「その週時点で在籍中かつ未開始」のスナップショット。新規登録があれば増加することがある</div>
+        <div class="premise-item"><span class="tag tag-info">前年度</span>前年度に解いたことがある生徒も「開始済み（B"）」に含まれる。4月初旬のB"は前年度利用者を多く含む</div>
+      </div>
+
+      <div class="premise-section">
+        <div class="premise-section-title">年度途中の人数変化</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>B・B'・B" はいずれも週次平均。年度初めと年度末で登録者数が異なる（転入・転出・退会）</div>
+        <div class="premise-item"><span class="tag tag-info">小3</span>4月第1〜2週は未開始率43〜50%。理科が始まる学年のため、登録直後で誰も使っていない状態が正常</div>
+        <div class="premise-item"><span class="tag tag-info">小4〜中3</span>4月初旬の未開始率10〜12%は「前年度から繰り越した理科未接触層」。前年度に1問でも解いていれば開始済みに含まれる</div>
+        <div class="premise-item">11月前後に全学年で未開始率が小幅上昇する傾向あり（新規登録・転入生の流入）</div>
+      </div>
+
+      <div class="premise-section">
+        <div class="premise-section-title">D（理科全体UU）の性質</div>
+        <div class="premise-item"><span class="tag tag-info">定義</span>期間中にそのグループで理科を1問以上解いたことがある生徒の累計人数（期間累計）</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>未利用者が分母に含まれないため「理科を使った人の中での話」になる。割合を出す際は「〇〇を1問以上解いたN人のうち」と必ず明記する</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>B"（週次平均）とD（累計UU）は計算方式が異なるため一致しない。数千〜1万人台のズレは許容範囲</div>
+      </div>
+
+      <div class="premise-section">
+        <div class="premise-section-title">E（種別UU）の性質</div>
+        <div class="premise-item"><span class="tag tag-info">標準版</span>「小○」「中○」コンテンツを1問以上解いた累計人数</div>
+        <div class="premise-item"><span class="tag tag-info">練習問題</span>「小○ 教科書の練習問題」「中○ 教科書の練習問題」を1問以上解いた累計人数</div>
+        <div class="premise-item">両方使った生徒は標準版・練習問題の両方にカウントされる（重複あり）</div>
+        <div class="premise-item"><span class="tag tag-warn">未提供</span>skyR06（信教・小学）は練習問題未提供。tshR03・krkR03（中学旧世代）は練習問題の記録なし</div>
+        <div class="premise-item"><span class="tag tag-warn">注意</span>生徒の在籍学年で集計。4月の小4生徒が小3コンテンツを解くケースあり（実際に多い）。コンテンツ学年での絞り込みとは異なる</div>
+      </div>
+
+      <div class="premise-section">
+        <div class="premise-section-title">グループ規模の注意</div>
+        <div class="premise-item">小学はR06系6社で全数（旧世代グループなし）。中学R07系4社が現行主流</div>
+        <div class="premise-item">gktR06（学図・小）・skyR06（信教・小）・R03系3社（中学旧世代）は規模が小さく、比率での議論は統計的に不安定になりうる</div>
+        <div class="premise-item">dnpR06（大日本・小）は小学全学年で最大勢力（6社合計の38〜41%）</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- コントロール -->
+<div class="card">
+  <div class="card-body ctrl-card">
+    <div class="ctrl-row">
+      <span class="ctrl-label">学年</span>
+      <div class="btn-group" id="grade-btns">
+        <button class="btn active" data-grade="小学3年">小3</button>
+        <button class="btn active" data-grade="小学4年">小4</button>
+        <button class="btn active" data-grade="小学5年">小5</button>
+        <button class="btn active" data-grade="小学6年">小6</button>
+        <button class="btn active" data-grade="中学1年">中1</button>
+        <button class="btn active" data-grade="中学2年">中2</button>
+        <button class="btn active" data-grade="中学3年">中3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">下段 表示</span>
+      <div class="btn-group" id="mode-btns">
+        <button class="btn mode-btn active" data-mode="D">案D　理科全体UU</button>
+        <button class="btn mode-btn" data-mode="E_h">案E　標準版</button>
+        <button class="btn mode-btn" data-mode="E_r">案E　練習問題</button>
+      </div>
+      <div class="divider-v"></div>
+      <span class="ctrl-label">グループ</span>
+      <div class="btn-group" id="group-btns">
+        <button class="btn sm active" data-group="tshR06">東書(小)</button>
+        <button class="btn sm active" data-group="krkR06">啓林館(小)</button>
+        <button class="btn sm active" data-group="dnpR06">大日本(小)</button>
+        <button class="btn sm active" data-group="kysR06">教育出版(小)</button>
+        <button class="btn sm active" data-group="gktR06">学図(小)</button>
+        <button class="btn sm active" data-group="skyR06">信教(小)</button>
+        <button class="btn sm active" data-group="tshR07">東書(中)</button>
+        <button class="btn sm active" data-group="krkR07">啓林館(中)</button>
+        <button class="btn sm active" data-group="kysR07">教育出版(中)</button>
+        <button class="btn sm active" data-group="gktR07">学図(中)</button>
+        <button class="btn sm active" data-group="tshR03">東書R3(旧)</button>
+        <button class="btn sm active" data-group="krkR03">啓林館R3(旧)</button>
+        <button class="btn sm active" data-group="dnpR03">大日本R3(旧)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 上段：B/B'/B" -->
+<div class="card">
+  <div class="section-title">案B / B' / B"　―　全グループ合算・週次平均（グループ別絞り込み不可）</div>
+  <table>
+    <thead><tr id="ab-head"></tr></thead>
+    <tbody id="ab-body"></tbody>
+  </table>
+</div>
+
+<!-- 下段：D/E -->
+<div class="card">
+  <div class="de-header">
+    <div class="de-title" id="de-title">案D　―　各グループを使って理科を1問以上解いたことがある生徒（期間累計）</div>
+    <div class="tab-bar" id="grade-tabs"></div>
+  </div>
+  <table>
+    <thead><tr id="de-head"></tr></thead>
+    <tbody id="de-body"></tbody>
+  </table>
+  <div class="de-note" id="de-note"></div>
+</div>
+
+</div>
+
+<div class="footer">Qubena 理科コンテンツ分析　／　対象期間 2025-04-01〜2026-02-28　／　exclude_type=0　／　全mode</div>
+
+<script>
+const BB = {
+  '小学3年':{B:79386, Bp:12329,Bdp:67057},
+  '小学4年':{B:84502, Bp:5033, Bdp:79470},
+  '小学5年':{B:92224, Bp:5579, Bdp:86646},
+  '小学6年':{B:91762, Bp:3492, Bdp:88270},
+  '中学1年':{B:104661,Bp:8297, Bdp:96364},
+  '中学2年':{B:107289,Bp:4823, Bdp:102466},
+  '中学3年':{B:107407,Bp:3931, Bdp:103475},
+};
+
+const DE_RAW = [
+  {g:'小学3年',c:'dnpR06',D:26669,Eh:21391,Er:16612},
+  {g:'小学3年',c:'gktR06',D:673,  Eh:559,  Er:552},
+  {g:'小学3年',c:'krkR06',D:14284,Eh:12338,Er:8999},
+  {g:'小学3年',c:'kysR06',D:6380, Eh:5266, Er:4691},
+  {g:'小学3年',c:'skyR06',D:71,   Eh:71,   Er:null},
+  {g:'小学3年',c:'tshR06',D:14731,Eh:12069,Er:10408},
+  {g:'小学4年',c:'dnpR06',D:26645,Eh:21630,Er:17112},
+  {g:'小学4年',c:'gktR06',D:883,  Eh:767,  Er:700},
+  {g:'小学4年',c:'krkR06',D:16409,Eh:14493,Er:11300},
+  {g:'小学4年',c:'kysR06',D:6985, Eh:5737, Er:5212},
+  {g:'小学4年',c:'skyR06',D:46,   Eh:46,   Er:null},
+  {g:'小学4年',c:'tshR06',D:16480,Eh:13197,Er:12520},
+  {g:'小学5年',c:'dnpR06',D:29888,Eh:24907,Er:19271},
+  {g:'小学5年',c:'gktR06',D:1167, Eh:964,  Er:1021},
+  {g:'小学5年',c:'krkR06',D:18236,Eh:15865,Er:12698},
+  {g:'小学5年',c:'kysR06',D:7294, Eh:5942, Er:5527},
+  {g:'小学5年',c:'skyR06',D:110,  Eh:110,  Er:null},
+  {g:'小学5年',c:'tshR06',D:17021,Eh:13938,Er:12563},
+  {g:'小学6年',c:'dnpR06',D:28261,Eh:23891,Er:18284},
+  {g:'小学6年',c:'gktR06',D:1048, Eh:974,  Er:855},
+  {g:'小学6年',c:'krkR06',D:17443,Eh:15547,Er:12901},
+  {g:'小学6年',c:'kysR06',D:6977, Eh:5661, Er:5242},
+  {g:'小学6年',c:'skyR06',D:118,  Eh:118,  Er:null},
+  {g:'小学6年',c:'tshR06',D:16753,Eh:14304,Er:12546},
+  {g:'中学1年',c:'dnpR03',D:1551, Eh:1079, Er:1185},
+  {g:'中学1年',c:'gktR07',D:882,  Eh:187,  Er:882},
+  {g:'中学1年',c:'krkR03',D:832,  Eh:406,  Er:0},
+  {g:'中学1年',c:'krkR07',D:32552,Eh:2028, Er:31744},
+  {g:'中学1年',c:'kysR07',D:6013, Eh:376,  Er:5986},
+  {g:'中学1年',c:'tshR03',D:1602, Eh:1013, Er:0},
+  {g:'中学1年',c:'tshR07',D:40491,Eh:3177, Er:39636},
+  {g:'中学2年',c:'dnpR03',D:3539, Eh:1981, Er:1614},
+  {g:'中学2年',c:'gktR07',D:959,  Eh:170,  Er:959},
+  {g:'中学2年',c:'krkR03',D:2394, Eh:1666, Er:0},
+  {g:'中学2年',c:'krkR07',D:32433,Eh:1820, Er:31462},
+  {g:'中学2年',c:'kysR07',D:5871, Eh:599,  Er:5817},
+  {g:'中学2年',c:'tshR03',D:3378, Eh:2504, Er:0},
+  {g:'中学2年',c:'tshR07',D:40208,Eh:4306, Er:39457},
+  {g:'中学3年',c:'dnpR03',D:3333, Eh:1397, Er:2308},
+  {g:'中学3年',c:'gktR07',D:1029, Eh:92,   Er:1003},
+  {g:'中学3年',c:'krkR03',D:2320, Eh:2098, Er:0},
+  {g:'中学3年',c:'krkR07',D:26496,Eh:1362, Er:25618},
+  {g:'中学3年',c:'kysR07',D:5264, Eh:480,  Er:5070},
+  {g:'中学3年',c:'tshR03',D:2325, Eh:2098, Er:0},
+  {g:'中学3年',c:'tshR07',D:35489,Eh:4726, Er:34549},
+];
+
+const GL = {
+  tshR06:'東書（小・現行）',  krkR06:'啓林館（小・現行）', dnpR06:'大日本（小・現行）',
+  kysR06:'教育出版（小・現行）',gktR06:'学図（小・現行）',  skyR06:'信教（小・現行）',
+  tshR07:'東書（中・現行）',  krkR07:'啓林館（中・現行）', kysR07:'教育出版（中・現行）',
+  gktR07:'学図（中・現行）',
+  tshR03:'東書（中・旧R03）', krkR03:'啓林館（中・旧R03）',dnpR03:'大日本（中・旧R03）',
+};
+const G_TYPE = {
+  tshR06:'elem',krkR06:'elem',dnpR06:'elem',kysR06:'elem',gktR06:'elem',skyR06:'elem',
+  tshR07:'mid', krkR07:'mid', kysR07:'mid', gktR07:'mid',
+  tshR03:'old', krkR03:'old', dnpR03:'old',
+};
+const ALL_GRADES = ['小学3年','小学4年','小学5年','小学6年','中学1年','中学2年','中学3年'];
+const ALL_GROUPS = ['tshR06','krkR06','dnpR06','kysR06','gktR06','skyR06','tshR07','krkR07','kysR07','gktR07','tshR03','krkR03','dnpR03'];
+
+let activeGrades = new Set(ALL_GRADES);
+let activeGroups = new Set(ALL_GROUPS);
+let activeMode = 'D';
+let activeTab = '小学3年';
+
+const fmt = n => n == null ? '—' : n.toLocaleString() + '人';
+const shortGrade = g => g.replace('小学','小').replace('中学','中');
+const getGrades = () => ALL_GRADES.filter(g => activeGrades.has(g));
+const getGroups = () => ALL_GROUPS.filter(g => activeGroups.has(g));
+
+function renderAB() {
+  const grades = getGrades();
+  document.getElementById('ab-head').innerHTML =
+    `<th>案</th>` +
+    grades.map(g => `<th>${shortGrade(g)}</th>`).join('') +
+    `<th style="text-align:left;padding-left:14px">この人数が表す人</th>`;
+
+  const rows = [
+    {cls:'',          label:'B',       key:'B',   desc:'理科が使える状態にある登録生徒（全グループ合算）'},
+    {cls:'',          label:"B'",      key:'Bp',  desc:'そのうちまだ1問も解いたことがない在籍生徒'},
+    {cls:'row-derived',label:'B"',     key:'Bdp', desc:'1問以上解いたことがある在籍生徒（開始済み）<br><small style="color:var(--text-3);font-size:10px">前年度利用者を含む</small>'},
+  ];
+  document.getElementById('ab-body').innerHTML = rows.map(r => `
+    <tr class="${r.cls}">
+      <td><span class="num">${r.label}</span></td>
+      ${grades.map(g => `<td class="num">${fmt(BB[g]?.[r.key])}</td>`).join('')}
+      <td style="text-align:left;padding-left:14px;color:var(--text-2);font-weight:400;white-space:normal;min-width:200px;font-size:11px">${r.desc}</td>
+    </tr>`).join('');
+}
+
+function renderTabs() {
+  const grades = getGrades();
+  if (!grades.includes(activeTab)) activeTab = grades[0] || '';
+  document.getElementById('grade-tabs').innerHTML = grades.map(g => {
+    const cls = g.startsWith('小') ? 'elem' : 'mid';
+    return `<div class="tab ${cls}${g === activeTab ? ' active' : ''}" data-tab="${g}">${shortGrade(g)}</div>`;
+  }).join('');
+  document.querySelectorAll('.tab').forEach(t => {
+    t.onclick = () => { activeTab = t.dataset.tab; renderDE(); renderTabs(); };
+  });
+}
+
+function renderDE() {
+  const groups = getGroups();
+  const grade = activeTab;
+  const isElem = grade.startsWith('小');
+  const modeKey = activeMode === 'D' ? 'D' : activeMode === 'E_h' ? 'Eh' : 'Er';
+
+  const titles = {
+    D: '案D　―　各グループを使って理科を1問以上解いたことがある生徒（期間累計）',
+    E_h: '案E 標準版　―　学年対応コンテンツ（小○ / 中○）を1問以上解いたことがある生徒（期間累計）',
+    E_r: '案E 練習問題　―　教科書の練習問題を1問以上解いたことがある生徒（期間累計）',
+  };
+  document.getElementById('de-title').textContent = titles[activeMode];
+  document.getElementById('de-head').innerHTML =
+    `<th>グループ</th><th>${shortGrade(grade)}</th>`;
+
+  const sections = [
+    {label:'小学（R06系・現行）', dot:'grp-elem', filter: c => G_TYPE[c] === 'elem'},
+    {label:'中学（R07系・現行）', dot:'grp-mid',  filter: c => G_TYPE[c] === 'mid'},
+    {label:'中学（R03系・旧世代）',dot:'grp-old',  filter: c => G_TYPE[c] === 'old'},
+  ];
+
+  let html = '';
+  let grandTotal = 0;
+
+  sections.forEach(sec => {
+    const secGroups = groups.filter(sec.filter);
+    if (!secGroups.length) return;
+    const secForElem = sec.label.startsWith('小');
+    const secForMid  = sec.label.startsWith('中');
+    if (isElem && secForMid)  return;
+    if (!isElem && secForElem) return;
+
+    html += `<tr class="row-section"><td colspan="2"><span class="${sec.dot}"></span>${sec.label}</td></tr>`;
+    let secTotal = 0;
+
+    secGroups.forEach(c => {
+      const d = DE_RAW.find(r => r.g === grade && r.c === c);
+      const val = d?.[modeKey];
+      const unprovided = (c === 'skyR06' && activeMode === 'E_r') ||
+                         ((c === 'tshR03' || c === 'krkR03') && activeMode === 'E_r');
+      const display = unprovided
+        ? `<span class="na">未提供</span>`
+        : (val == null ? `<span class="na">—</span>` : `<span class="num">${val.toLocaleString()}人</span>`);
+      if (val != null && !unprovided) secTotal += val;
+      html += `<tr><td>${GL[c]}</td><td>${display}</td></tr>`;
+    });
+
+    if (secGroups.length > 1) {
+      html += `<tr class="row-total"><td>小計</td><td class="num">${secTotal.toLocaleString()}人</td></tr>`;
+    }
+    grandTotal += secTotal;
+  });
+
+  document.getElementById('de-body').innerHTML = html;
+
+  const bdp = BB[grade]?.Bdp || 0;
+  const diff = Math.abs(bdp - grandTotal);
+  document.getElementById('de-note').innerHTML = activeMode === 'D'
+    ? `参考：案B"（${grade}・開始済み週次平均）${bdp.toLocaleString()}人　／　表示グループ合計との差 ▲${diff.toLocaleString()}人　―　週次平均と累計UUの計算方式の違い・グループ未網羅によるもの`
+    : activeMode === 'E_r'
+      ? 'skyR06（信教・小学）は練習問題未提供。tshR03・krkR03（中学旧世代）は練習問題の記録なし。両コンテンツを使った生徒は標準版・練習問題の両方にカウントされる（重複あり）。'
+      : '両コンテンツを使った生徒は標準版・練習問題の両方にカウントされる（重複あり）。学年対応コンテンツ（例：中1在籍→「中1」コンテンツ）のみ集計。';
+}
+
+function render() { renderAB(); renderTabs(); renderDE(); }
+
+document.getElementById('grade-btns').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const g = b.dataset.grade;
+  if (activeGrades.has(g) && activeGrades.size > 1) { activeGrades.delete(g); b.classList.remove('active'); }
+  else { activeGrades.add(g); b.classList.add('active'); }
+  render();
+});
+document.getElementById('group-btns').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const g = b.dataset.group;
+  if (activeGroups.has(g) && activeGroups.size > 1) { activeGroups.delete(g); b.classList.remove('active'); }
+  else { activeGroups.add(g); b.classList.add('active'); }
+  renderDE();
+});
+document.getElementById('mode-btns').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  activeMode = b.dataset.mode;
+  renderDE();
+});
+
+function toggleCard(id) {
+  const body = document.getElementById(id + '-body');
+  const toggle = document.getElementById(id + '-toggle');
+  const open = body.classList.toggle('collapsed');
+  toggle.textContent = open ? '▼ 開く' : '▲ 閉じる';
+}
+
+render();
+</script>
+</body>
+</html>
