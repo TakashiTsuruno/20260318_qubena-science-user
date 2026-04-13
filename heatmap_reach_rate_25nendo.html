@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qubena理科 章到達率ヒートマップ（25年度）</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f6; color: #2c2c2a; padding: 24px; }
+h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #5f5e5a; margin-bottom: 20px; }
+.ctrl { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.tb { background: transparent; border: 0.5px solid #b4b2a9; border-radius: 8px; padding: 5px 12px; font-size: 12px; color: #5f5e5a; cursor: pointer; }
+.tb.on { background: #e8e6df; color: #2c2c2a; border-color: #888780; font-weight: 500; }
+.hm-wrap { overflow-x: auto; margin-bottom: 12px; }
+table.hm { border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+table.hm th { padding: 5px 8px; color: #5f5e5a; font-weight: 400; text-align: left; border-bottom: 1px solid #d3d1c7; }
+table.hm th.month { text-align: center; min-width: 40px; }
+table.hm th.month.warn { color: #ba7517; font-weight: 500; }
+table.hm td { padding: 4px 8px; text-align: center; min-width: 40px; font-size: 11px; }
+.leg { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 11px; color: #5f5e5a; }
+.leg-bar { display: flex; gap: 1px; }
+.leg-sq { width: 18px; height: 12px; border-radius: 2px; }
+.def-box { border: 0.5px solid #d3d1c7; border-radius: 12px; padding: 16px 18px; background: #fff; margin-bottom: 16px; }
+.def-title { font-size: 12px; font-weight: 500; color: #5f5e5a; margin-bottom: 10px; }
+.def-row { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 11px; margin-bottom: 6px; align-items: start; }
+.def-label { color: #888780; }
+.def-val { color: #2c2c2a; line-height: 1.6; }
+.warn-box { margin-top: 12px; background: #faeeda; border: 0.5px solid #ef9f27; border-radius: 8px; padding: 10px 14px; }
+.warn-title { font-size: 12px; font-weight: 500; color: #854f0b; margin-bottom: 6px; }
+.warn-item { font-size: 11px; color: #854f0b; line-height: 1.7; margin-bottom: 2px; }
+.footer { font-size: 11px; color: #888780; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>Qubena理科 月別累計章到達率ヒートマップ</h1>
+<p class="subtitle">25年度（2025年4月〜2026年3月）／ 教科書の練習問題</p>
+
+<div class="ctrl" id="grp-row">
+  <button class="tb on" onclick="setGrp('tshR06_sho5',this)">tshR06（東書）小5</button>
+  <button class="tb" onclick="setGrp('krkR06_sho5',this)">krkR06（啓林館）小5</button>
+  <button class="tb" onclick="setGrp('tshR07_chu1',this)">tshR07（東書）中1</button>
+  <button class="tb" onclick="setGrp('krkR07_chu1',this)">krkR07（啓林館）中1</button>
+</div>
+
+<div class="hm-wrap"><table class="hm" id="hm-table"></table></div>
+
+<div class="leg">
+  <span>0%</span>
+  <div class="leg-bar" id="leg-bar"></div>
+  <span>50%+</span>
+</div>
+
+<div class="def-box">
+  <div class="def-title">指標の定義・集計条件</div>
+  <div class="def-row"><span class="def-label">累計章到達率</span><span class="def-val">その月末時点までにその章を1問以上解いた生徒数 ÷ グループ内の理科全体利用者数（案D） × 100</span></div>
+  <div class="def-row"><span class="def-label">分母（案D）</span><span class="def-val">グループ×学年で理科を1問以上解いたことがある生徒の年間累計UU。登録者全体ではない</span></div>
+  <div class="def-row"><span class="def-label">対象コンテンツ</span><span class="def-val">教科書の練習問題のみ（標準版・単元確認問題は除く）</span></div>
+  <div class="def-row"><span class="def-label">対象期間</span><span class="def-val">2025年4月〜2026年3月（25年度通年）</span></div>
+  <div class="def-row"><span class="def-label">章の並び順</span><span class="def-val">教科書の掲載順（グループごとに異なる）</span></div>
+  <div class="warn-box">
+    <div class="warn-title">数値を読む際の注意点</div>
+    <div class="warn-item">▸ 4月（*印）の数値は前年度から引き続き使っている上の学年の生徒が含まれるため、全章に小さな数値が出る。4月初旬の数値は在籍学年のずれの影響を受けやすい</div>
+    <div class="warn-item">▸ 分母は「理科を1問以上使ったことがある生徒数」であり、登録者全体ではない</div>
+    <div class="warn-item">▸ 数値は累計のため月を追うごとに増加する。前の月より下がることはない</div>
+    <div class="warn-item">▸ グループ間の数値は直接比較しない（教科書の構成・問題数が異なるため）</div>
+    <div class="warn-item">▸ 中学は2学期制・3学期制の学校が混在しており、月別の推移はあくまで参考として読む</div>
+  </div>
+</div>
+
+<p class="footer">作成日：2026年4月9日 ／ 分析：Qubena理科コンテンツチーム</p>
+
+<script>
+const MONTHS = ['4月*','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月'];
+
+const RAW = {
+  tshR06_sho5: {
+    label: 'tshR06（東書）小5',
+    order: ['天気を予想しよう-1 天気の変化','生命のつながりを考えよう-1 植物の発芽と成長','生命のつながりを考えよう-2 魚のたんじょう','生命のつながりを考えよう-3 花から実へ','天気を予想しよう-2 台風と天気の変化','流れる水のはたらき','物のとけ方','生命のつながりを考えよう-4 人のたんじょう','電流がうみ出す力','ふりこのきまり'],
+    data: {
+      '天気を予想しよう-1 天気の変化': [11.6,22,24.5,34.3,38.7,39.7,41,42,42.5,42.8,43.8,44.8],
+      '生命のつながりを考えよう-1 植物の発芽と成長': [3.7,10.8,21.4,33,39.2,40.3,41.3,41.7,42.5,42.7,43.8,44.7],
+      '生命のつながりを考えよう-2 魚のたんじょう': [2.4,4.9,15.1,29.6,35.5,36.6,37.1,37.5,38.4,38.8,39.8,40.2],
+      '生命のつながりを考えよう-3 花から実へ': [2.1,2.4,3,5.6,7.2,20.9,24,26,29.8,31.8,32.4,33.4],
+      '天気を予想しよう-2 台風と天気の変化': [1.4,1.5,2,3.7,4.8,10.5,20.4,22.6,26.8,28.6,29.2,30.2],
+      '流れる水のはたらき': [2.1,2.3,2.6,3.7,4.6,5.4,13.4,21.2,27.5,30,30.6,31.1],
+      '物のとけ方': [2.9,3.2,3.4,4.4,5.8,6.4,7.4,11.9,26.2,30.4,31.9,33.2],
+      '生命のつながりを考えよう-4 人のたんじょう': [2.2,2.6,2.7,3.1,3.7,3.8,4,4.8,6.8,17.9,21.7,23],
+      '電流がうみ出す力': [2.9,3.2,3.3,4,4.9,5.2,5.2,5.4,5.7,8.1,21.3,25],
+      'ふりこのきまり': [2.8,3.1,3.3,3.7,4.5,4.8,5,5.1,5.5,6.4,10.5,20],
+    }
+  },
+  krkR06_sho5: {
+    label: 'krkR06（啓林館）小5',
+    order: ['花のつくり','雲と天気の変化','植物の発芽と成長','メダカのたんじょう','台風と気象情報','花から実へ','ヒトのたんじょう','流れる水のはたらき','ふりこのきまり','もののとけ方','電流と電磁石'],
+    data: {
+      '花のつくり': [5.9,10.7,14.2,23,27.2,28.5,29,29.7,30.5,30.8,31.7,33],
+      '雲と天気の変化': [5.3,16.4,19.4,28.1,32.2,33,33.4,34.1,34.6,35,35.8,36.8],
+      '植物の発芽と成長': [1.1,7,18.5,27.4,32,32.7,33.1,33.7,34.5,35,35.7,37.2],
+      'メダカのたんじょう': [1.5,3.4,17.2,28.2,32.7,33.4,34.1,34.9,35.7,36,36.5,37.4],
+      '台風と気象情報': [1.7,2,5.1,20,24.1,25.9,26.8,27.7,28.5,28.9,29.2,30.6],
+      '花から実へ': [1.3,1.8,2.6,4.5,5.8,20.9,24.1,25.7,30.6,32.3,32.6,33.8],
+      'ヒトのたんじょう': [1.1,1.6,1.9,2.8,3.3,10.4,22.1,23.7,29.4,32.2,32.5,33.6],
+      '流れる水のはたらき': [1,1.5,1.5,2,2.7,3,9.8,21.8,30.8,33.9,34.3,35.1],
+      'ふりこのきまり': [1.1,1.5,1.5,2,2.7,3,3.7,10.5,26.8,30.4,31.6,33],
+      'もののとけ方': [1.3,1.4,1.6,2.2,2.6,3.6,4.2,4.6,6.7,13.4,22.7,25.5],
+      '電流と電磁石': [1.7,1.8,2.1,2.7,3.5,3.6,3.8,4,4.6,5.6,10.1,20.8],
+    }
+  },
+  tshR07_chu1: {
+    label: 'tshR07（東書）中1',
+    order: ['生物の観察と分類のしかた','植物の分類','動物の分類','身のまわりの物質とその性質','気体の性質','水溶液の性質','物質の姿と状態変化','光の世界','音の世界','力の世界','火をふく大地','動き続ける大地','地層から読みとる大地の変化'],
+    data: {
+      '生物の観察と分類のしかた': [8.2,22.1,30,36.6,39.2,41.5,42.9,44.1,46.6,48.6,50.3,52.1],
+      '植物の分類': [3.3,17.4,25.6,32.3,36,38.4,39.9,40.8,42.7,44.6,46.1,47.8],
+      '動物の分類': [1.7,5.3,17.3,24.1,29.1,32,33.6,34.6,36.3,37.7,38.8,40.2],
+      '身のまわりの物質とその性質': [1.9,3.2,8.9,18.2,23.6,29.3,31.1,32.9,34.9,36.7,37.6,38.8],
+      '気体の性質': [2.3,3.1,4.3,8.2,11.6,20.4,25,27.9,30.6,32.9,33.8,35.3],
+      '水溶液の性質': [1.3,2.1,3.2,5.8,8.1,14.3,22.9,27.5,30.4,33.3,34.7,36.1],
+      '物質の姿と状態変化': [1.2,1.6,2.3,4,5.3,7,14.1,20.9,24.5,27.2,28.6,30.4],
+      '光の世界': [1.6,2.4,3.7,6.3,8.4,9.8,13.6,22,30.7,36.7,41.2,42.8],
+      '音の世界': [0.9,1.5,2.6,4.2,6,6.8,8.2,11.5,19.5,26.3,31,32.3],
+      '力の世界': [0.8,1.6,2.1,3.6,4.9,5.5,6.9,8.2,14.6,22.8,28.4,30],
+      '火をふく大地': [1.7,3.1,4.3,6.2,8.3,9.5,10.8,12.2,14.2,21.2,31.4,34.1],
+      '動き続ける大地': [1.2,3,4.2,5.8,7.5,8.6,9.4,10.6,12.1,15.3,23.8,28.4],
+      '地層から読みとる大地の変化': [2.4,4.6,6.4,7.9,9.5,10.2,11.2,12.2,13.7,15.4,19.1,26],
+    }
+  },
+  krkR07_chu1: {
+    label: 'krkR07（啓林館）中1',
+    order: ['自然の中にあふれる生命','植物の特徴と分類','動物の特徴と分類','身近な大地','ゆれる大地','火をふく大地','語る大地','いろいろな物質とその性質','いろいろな気体とその性質','水溶液の性質','物質のすがたとその変化','光による現象','音による現象','力による現象'],
+    data: {
+      '自然の中にあふれる生命': [6.8,17.6,23.9,31.7,35.2,37.7,39.1,40.4,42.6,44.6,45.9,47],
+      '植物の特徴と分類': [3.5,15.2,22.6,29.2,33.7,36,37.2,38.4,40.3,42.4,43.6,44.9],
+      '動物の特徴と分類': [1.4,5.4,17.1,23.2,28.5,32,33.4,34.4,35.8,37.2,38.1,39.1],
+      '身近な大地': [1.1,3.4,5,6.2,7.8,9.2,10.7,12.3,13.8,16.6,22.5,24],
+      'ゆれる大地': [1.6,3.8,6.2,8.2,10.5,11.9,13.6,15.4,17.5,20.9,27.6,29.8],
+      '火をふく大地': [1.3,3.5,5,6.1,7.2,8.2,9.7,11.4,13.8,16.9,21.9,24.8],
+      '語る大地': [1.4,4.2,5.5,6.3,7.3,8,9.4,10.8,12.8,14.9,17,20.5],
+      'いろいろな物質とその性質': [1.1,2.7,6.3,12.2,16.2,22.2,25,28.9,30.5,31.7,32.7,33.9],
+      'いろいろな気体とその性質': [0.5,1.5,2.4,5,6.9,11.5,14.9,17.6,19.5,21.1,22,22.5],
+      '水溶液の性質': [0.6,1.6,2.5,4.5,6.4,10.4,15.3,20.5,24.2,27.7,29.3,30.1],
+      '物質のすがたとその変化': [0.4,1,2.2,3.5,4.8,6.1,9.2,14.9,17.8,20.5,22.3,22.6],
+      '光による現象': [1.3,2,3.8,6.3,9.2,11.1,13.7,18.9,26.4,31.4,36.9,38.2],
+      '音による現象': [0.7,1.3,1.8,2.8,3.8,5.4,6.9,9.4,13.2,17.4,21.9,22.9],
+      '力による現象': [1.1,2,2.8,3.7,5.1,6.3,7.4,8.6,11.9,16.7,22.5,23.7],
+    }
+  }
+};
+
+function color(v) {
+  const stops = [[0,'#f1efe8'],[5,'#c0dd97'],[15,'#97c459'],[30,'#3b6d11'],[50,'#173404']];
+  if (v <= 0) return stops[0][1];
+  if (v >= 50) return stops[stops.length-1][1];
+  for (let i=1;i<stops.length;i++) {
+    if (v <= stops[i][0]) {
+      const t = (v-stops[i-1][0])/(stops[i][0]-stops[i-1][0]);
+      return lerpHex(stops[i-1][1],stops[i][1],t);
+    }
+  }
+  return stops[stops.length-1][1];
+}
+function textColor(v) { return v>=25?'#c0dd97':'#444441'; }
+function lerpHex(a,b,t) {
+  const ah=parseInt(a.slice(1),16),bh=parseInt(b.slice(1),16);
+  const ar=ah>>16,ag=(ah>>8)&255,ab=ah&255;
+  const br=bh>>16,bg=(bh>>8)&255,bb=bh&255;
+  const r=Math.round(ar+(br-ar)*t),g=Math.round(ag+(bg-ag)*t),bl=Math.round(ab+(bb-ab)*t);
+  return '#'+[r,g,bl].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+let curGrp = 'tshR06_sho5';
+
+function render() {
+  const d = RAW[curGrp];
+  const tbl = document.getElementById('hm-table');
+  let html = '<tr><th style="min-width:180px;">章</th>';
+  MONTHS.forEach((m,i) => {
+    const warn = i===0 ? ' class="month warn"' : ' class="month"';
+    html += `<th${warn}>${m}</th>`;
+  });
+  html += '</tr>';
+  d.order.forEach(ch => {
+    const short = ch.length>18 ? ch.slice(0,17)+'…' : ch;
+    html += `<tr><th title="${ch}" style="color:#2c2c2a;border-bottom:0.5px solid #e8e6df;">${short}</th>`;
+    (d.data[ch]||Array(12).fill(0)).forEach((v,i) => {
+      const borderR = i===0?'border-right:1.5px solid #ef9f27;':'';
+      html += `<td style="background:${color(v)};color:${textColor(v)};${borderR}">${v.toFixed(0)}</td>`;
+    });
+    html += '</tr>';
+  });
+  tbl.innerHTML = html;
+}
+
+function buildLeg() {
+  const bar = document.getElementById('leg-bar');
+  for(let v=0;v<=50;v+=2) {
+    const sq = document.createElement('div');
+    sq.className = 'leg-sq';
+    sq.style.background = color(v);
+    bar.appendChild(sq);
+  }
+}
+
+function setGrp(g,btn) {
+  curGrp = g;
+  document.querySelectorAll('#grp-row .tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+buildLeg();
+render();
+</script>
+</body>
+</html>
